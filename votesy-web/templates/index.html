@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet", href="{{ url_for('static', filename='style.css')}}">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div class="App">
+        <header class="App-header">
+            <h1>Votesy!</h1>
+            <div id="content-container">
+                <div id="content-container-center">
+                <h3>{{question.Text}}</h3>
+                <form id="choice" name='form' method="POST" action="/">
+                    <button id={{question.Answer1Id}} name="vote" type="submit" class="a" value={{question.Answer1Id}}>{{question.Answer1Text}}</button>
+                    <button id={{question.Answer2Id}} name="vote" type="submit" class="b" value={{question.Answer2Id}}>{{question.Answer2Text}}</button>
+                </form>
+                <div id="hostname"> 
+                    <small>Processed by container ID <b>{{hostname}}</b></small><br />
+                    <small>{{connectionString}}</small>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    {% if vote %}
+    <script>
+        // Yo this is some weird Python in my JavaScript shit here.
+        var vote = "{{vote}}";
+        const buttonA = document.getElementById("{{question.Answer1Id}}")        
+        const buttonB = document.getElementById("{{question.Answer2Id}}")
+
+        if(vote == "{{question.Answer1Id}}")
+        {
+            console.log("Voted for a");
+            
+            buttonA.disabled = true;
+            buttonA.innerHTML = "{{question.Answer1Text}}<i class='fa fa-check-circle'></i>"
+            buttonB.style.opacity = '0.5'
+        }
+        if(vote == "{{question.Answer2Id}}")
+        {
+            console.log("Voted for b");
+            
+            buttonB.disabled = true;
+            buttonB.innerHTML = "{{question.Answer2Text}}<i class='fa fa-check-circle'></i>"
+            buttonA.style.opacity = '0.5'
+        }
+    </script>
+    {% endif %}
+</body>
+</html>

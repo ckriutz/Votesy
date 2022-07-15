@@ -1,0 +1,12 @@
+version: '3.4'
+
+services:
+  votesy-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - QueueConnectionString=[string]
+      - Key:[key]
+      - TableName:votes
+      - AccountName:[accountname]
