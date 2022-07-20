@@ -13,17 +13,27 @@
             <h1>Votesy!</h1>
             <div id="content-container">
                 <div id="content-container-center">
-                <h3>{{question.Text}}</h3>
-                <form id="choice" name='form' method="POST" action="/">
-                    <button id={{question.Answer1Id}} name="vote" type="submit" class="a" value={{question.Answer1Id}}>{{question.Answer1Text}}</button>
-                    <button id={{question.Answer2Id}} name="vote" type="submit" class="b" value={{question.Answer2Id}}>{{question.Answer2Text}}</button>
-                </form>
-                <div id="hostname"> 
-                    <small>Processed by container ID <b>{{hostname}}</b></small><br />
-                    <small>{{connectionString}}</small>
+                    <h3>{{question.Text}}</h3>
+                    <form id="choice" name='form' method="POST" action="/">
+                        <button id={{question.Answer1Id}} name="vote" type="submit" class="a" value={{question.Answer1Id}}>{{question.Answer1Text}}</button>
+                        <button id={{question.Answer2Id}} name="vote" type="submit" class="b" value={{question.Answer2Id}}>{{question.Answer2Text}}</button>
+                    </form>
                 </div>
             </div>
+            <a class="results" href={{resultsUrl}}><i class="fa fa-check-square-o" aria-hidden="true"></i>View the Results!</a>
         </header>
+        <footer class="App-footer">
+            <ul class="list-inline">
+                <li class="list-inline-item"><a href="#">Home</a></li>
+                <li class="list-inline-item"><a href={{resultsUrl}}>Results</a></li>
+                <li class="list-inline-item"><a href="https://github.com/ckriutz/Votesy"><i class="fa fa-github" aria-hidden="true"></i></a></li>
+                <li class="list-inline-item"><a href="#">Privacy Policy</a></li>
+            </ul>
+            <div class="social">
+                
+            </div>
+            <p class="copyright">Votesy © 2022 | Processed by container ID <b>{{hostname}}</b> | API URL: {{connectionString}} | Results: {{resultsUrl}}</p>
+        </footer>
     </div>
 
     {% if vote %}

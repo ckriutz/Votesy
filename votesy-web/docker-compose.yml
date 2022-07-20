@@ -10,3 +10,4 @@ services:
       - 5002:5002
     environment:
       - apiUrl=[apiurl]
+      - resultsUrl=[resultsUrl]

@@ -9,11 +9,11 @@ import requests
 hostname = socket.gethostname()
 
 connectionString = os.getenv('apiUrl', 'http://localhost:5100')
+resultsUrl = os.getenv('resultsURL', "http://localhost:8080")
 print(connectionString);
 x = requests.get(connectionString + '/questions/current')
 print(x.json())
 
-#question = {'text': 'Bear or Owl?', 'answer1Text': 'Bear', 'answer1Id': 0, 'answer2Text': 'owl', 'answer2Id': 1}
 question = x.json()[0]
 print(question)
 
@@ -29,7 +29,12 @@ def main():
         message = {"questionId": question['RowKey'], "answerId" : vote}
         sendMessage(json.dumps(message))
 
-    return render_template("index.html", hostname = hostname, question=question, connectionString=connectionString, vote=vote)
+    return render_template("index.html", 
+        hostname = hostname, 
+        question = question, 
+        connectionString = connectionString, 
+        vote = vote, 
+        resultsUrl = resultsUrl)
 
 def sendMessage(message):
     # Get the AZURE_STORAGE_CONNECTION_STRING
