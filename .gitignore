@@ -1,13 +1,32 @@
+# This everywhere.
 .vscode
+
+# Infrastructure
+Infrastructure/docker-compose.debug.yml
+
+# votesy-api
 /votesy-api/node_modules
+votesy-api/docker-compose.debug.yml
+
+# votesy-web
 /votesy-web/__pycache__
 votesy-web/docker-compose.debug.yml
+/votesy-web-react
+
+# Votesy.Service
 /Votesy.Results/bin
 /Votesy.Results/obj
 /Votesy.Service/bin
 /Votesy.Service/obj
-/votesy-web-react
-/Votesy.Results.Blazor
 Votesy.Service/docker-compose.debug.yml
-Infrastructure/docker-compose.debug.yml
-votesy-api/docker-compose.debug.yml
+
+# Votesy.Results - Java Spring Boot
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+Votesy.Results/docker-compose.debug.yml
+
+# Other Projects
+/Votesy.Results.Blazor
