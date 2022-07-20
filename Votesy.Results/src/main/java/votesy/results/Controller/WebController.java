@@ -1,7 +1,6 @@
 package votesy.results.Controller;
 
 import java.util.ArrayList;
-import java.util.Optional;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +18,7 @@ public class WebController {
         AzureTableService ats = new AzureTableService();
         Question currentQuestion = ats.getCurrentQuestion();
         ArrayList<Vote> votes = ats.getVotesForQuestion(currentQuestion);
+        String voteUrl = System.getenv("voteUrl");
 
         model.addAttribute("question", currentQuestion.text);
         model.addAttribute("answer1", currentQuestion.answer1Text);
@@ -26,6 +26,8 @@ public class WebController {
 
         model.addAttribute("votes1", votes.get(0).VoteCount);
         model.addAttribute("votes2", votes.get(1).VoteCount);
+
+        model.addAttribute("voteUrl", voteUrl);
         return "index";
     }
 }

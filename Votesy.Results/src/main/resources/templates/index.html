@@ -3,6 +3,7 @@
    <head>
       <meta charset = "ISO-8859-1" />
       <link href = "css/styles.css" rel = "stylesheet"/>
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
       <title>Votesy Results!</title>
    </head>
    <body>
@@ -39,7 +40,17 @@
               </div>
             </div>
           </div>
-        </header> 
+        </header>
+        <footer class="App-footer">
+          <ul class="list-inline">
+              <li class="list-inline-item"><a href="#">Home</a></li>
+              <li class="list-inline-item"><a href={voteUrl}>Vote!</a></li>
+              <li class="list-inline-item"><a href="https://github.com/ckriutz/Votesy"><i class="fa fa-github" aria-hidden="true"></i></a></li>
+              <li class="list-inline-item"><a href="#">Privacy Policy</a></li>
+          </ul>
+          <!-- Note, I'd love to display the container name hower Java has no way to get it. :( -->
+          <p class="copyright">Votesy © 2022</p>
+      </footer>
     </div>
    </body>
 </html>

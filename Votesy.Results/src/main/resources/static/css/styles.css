@@ -13,7 +13,7 @@ body {
   
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
+  min-height: 85vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -131,3 +131,70 @@ body {
   .buttonX{
     height:80px;
   }
+
+  .App-footer {
+    background-color: #282c34;
+    min-height: 15vh;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+  }
+
+  .App-footer ul {
+    padding:0;
+    list-style:none;
+    text-align:center;
+    font-size:18px;
+    line-height:1.6;
+    margin-bottom:0;
+  }
+  
+  .App-footer li {
+    padding:0 10px;
+    display:inline;
+  }
+  
+  .App-footer ul a {
+    color:inherit;
+    text-decoration:none;
+    opacity:0.8;
+  }
+  
+  .App-footer ul a:hover {
+    opacity:1;
+  }
+  
+  /*
+  .social {
+    text-align:center;
+    padding-bottom:65px;
+    color: white;
+  }
+  
+  .social > a {
+    font-size:24px;
+    width:40px;
+    height:40px;
+    line-height:40px;
+    display:inline-block;
+    text-align:center;
+    border-radius:50%;
+    border:1px solid #ccc;
+    margin:0 8px;
+    color:inherit;
+    opacity:0.75;
+  }
+  
+  .social > a:hover {
+    opacity:0.9;
+  }
+*/
+  .copyright {
+    font-size:13px;
+    color:#aaa;
+  }
+
+  /* Credit to https://epicbootstrap.com/snippets/footer-basic */

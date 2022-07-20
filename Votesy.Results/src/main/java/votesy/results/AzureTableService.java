@@ -8,10 +8,6 @@ import com.azure.data.tables.TableClientBuilder;
 import com.azure.data.tables.TableServiceClient;
 import com.azure.data.tables.TableServiceClientBuilder;
 import com.azure.data.tables.models.ListEntitiesOptions;
-import com.azure.data.tables.models.TableEntity;
-import com.azure.data.tables.models.TableEntityUpdateMode;
-import com.azure.data.tables.models.TableTransactionAction;
-import com.azure.data.tables.models.TableTransactionActionType;
 
 public class AzureTableService {
     // Retrieve storage account from connection-string.
