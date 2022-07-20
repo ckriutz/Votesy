@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset = "ISO-8859-1" />
+      <link href = "css/styles.css" rel = "stylesheet"/>
+      <title>Votesy Results!</title>
+   </head>
+   <body>
+    <div class="App">
+        <header class="App-header">
+            <h1>Votesy!</h1>
+            <div id="content-container">
+                <div id="content-container-center">
+                  <h3><p th:text="${question}" /></h3>
+                </div>
+            </div>
+            <div id="container">
+              <div class="whole">
+                <div class="type">
+                  <p th:text="${answer1}"></p>
+                </div>
+                <div class="plan">
+                  <div class="header">
+                    <sup th:text="${votes1}"></sup>
+                    <p class="votesLabel">votes</p>
+                  </div>                
+                </div>
+              </div>
+              
+              <div class="whole">
+                <div class="type ultimate">
+                  <p th:text="${answer2}"></p>
+                </div>
+              <div class="plan">
+                <div class="header">
+                  <sup th:text="${votes2}"></sup>
+                  <p class="votesLabel">votes</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header> 
+    </div>
+   </body>
+</html>

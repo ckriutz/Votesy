@@ -1,0 +1,9 @@
+version: '3.4'
+
+services:
+  votesy-results:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - connectionString=[string]
