@@ -1,8 +1,8 @@
-FROM maven:3.5-jdk-8-alpine AS build
+FROM maven:3.8-openjdk-18-slim AS build
 
 WORKDIR /code
 
-COPY pom.xml /code/pom.xml
+COPY . .
 RUN ["mvn", "dependency:resolve"]
 RUN ["mvn", "verify"]
 
@@ -10,8 +10,8 @@ RUN ["mvn", "verify"]
 COPY ["src/main", "/code/src/main"]
 RUN ["mvn", "package"]
 
-FROM openjdk:8-jre-alpine
+FROM openjdk:18-alpine
 
 COPY --from=build /code/target/results-0.0.1.jar /
 
-CMD ["java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-jar", "/results-0.0.1.jar"]
+CMD ["java", "-jar", "/results-0.0.1.jar"]
