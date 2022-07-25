@@ -79,6 +79,34 @@ func getQuestionFromTableStorage(serviceClient *aztables.ServiceClient, id strin
 	client := serviceClient.NewClient("questions")
 	options := &aztables.GetEntityOptions{}
 
+	if id == "current" {
+		fmt.Println("Looking for the Current Question...")
+		filter := fmt.Sprintf("isCurrent eq true")
+		currentOptions := &aztables.ListEntitiesOptions{
+			Filter: &filter,
+		}
+		pager := client.NewListEntitiesPager(currentOptions)
+
+		for pager.More() {
+			response, err := pager.NextPage(context.TODO())
+			if err != nil {
+				panic(err)
+			}
+
+			for _, entity := range response.Entities {
+				var qEntity QuestionEntity
+				err = json.Unmarshal(entity, &qEntity)
+				if err != nil {
+					panic(err)
+				}
+
+				// There should only be one of these, so lets just grab it and go.
+				return qEntity
+			}
+		}
+	}
+
+	// at this point, we're looking for something more specific.
 	var question QuestionEntity
 	entity, err := client.GetEntity(context.TODO(), "Questions", id, options)
 	if err != nil {
