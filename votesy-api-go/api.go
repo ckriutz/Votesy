@@ -170,7 +170,7 @@ func addQuestionToTableStorage(serviceClient *aztables.ServiceClient, question Q
 	return question
 }
 
-func deleteQuestionFromTableStorage(serviceClient *aztables.ServiceClient, question QuestionEntity) {
+func deleteQuestionFromTableStorage(serviceClient *aztables.ServiceClient, question QuestionEntity) aztables.DeleteEntityResponse {
 	// Have to delete both the question AND the votes.
 	questionClient := serviceClient.NewClient("questions")
 	voteClient := serviceClient.NewClient("votes")
@@ -180,8 +180,62 @@ func deleteQuestionFromTableStorage(serviceClient *aztables.ServiceClient, quest
 	voteClient.DeleteEntity(context.TODO(), question.RowKey, question.Answer2Id, nil)
 
 	// Then the question.
-	questionClient.DeleteEntity(context.TODO(), question.PartitionKey, question.RowKey, nil)
+	resp, err := questionClient.DeleteEntity(context.TODO(), question.PartitionKey, question.RowKey, nil)
+	if err != nil {
+		panic(err)
+	}
 
+	return resp
+
+}
+
+func updateQuestionInTableStorage(serviceClient *aztables.ServiceClient, newQuestion QuestionEntity) aztables.UpdateEntityResponse {
+	questionClient := serviceClient.NewClient("questions")
+
+	marshalledQuestion, err := json.Marshal(newQuestion)
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := questionClient.UpdateEntity(context.TODO(), marshalledQuestion, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	return resp
+
+}
+
+func getVotesForQuestionFromTableStorage(serviceClient *aztables.ServiceClient, questionId string) []VoteEntity {
+	Votes := []VoteEntity{}
+
+	voteClient := serviceClient.NewClient("votes")
+
+	filter := fmt.Sprintf("PartitionKey eq '%s'", questionId)
+	options := &aztables.ListEntitiesOptions{
+		Filter: &filter,
+	}
+
+	pager := voteClient.NewListEntitiesPager(options)
+
+	for pager.More() {
+		response, err := pager.NextPage(context.TODO())
+		if err != nil {
+			panic(err)
+		}
+
+		for _, entity := range response.Entities {
+			var myEntity VoteEntity
+			err = json.Unmarshal(entity, &myEntity)
+			if err != nil {
+				panic(err)
+			}
+
+			Votes = append(Votes, myEntity)
+		}
+	}
+
+	return Votes
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -229,18 +283,46 @@ func deleteQuestion(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(reqBody, &question)
 
 	serviceClient := getServiceClient()
-	deleteQuestionFromTableStorage(serviceClient, question)
-	w.WriteHeader(200)
+	resp := deleteQuestionFromTableStorage(serviceClient, question)
+	json.NewEncoder(w).Encode(resp)
+}
+
+func updateQuestion(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint hit: updateQuestion")
+	// get the body of our DELETE request
+	// return the string response containing the request body
+	reqBody, _ := ioutil.ReadAll(r.Body)
+
+	var question QuestionEntity
+	json.Unmarshal(reqBody, &question)
+
+	serviceClient := getServiceClient()
+	updateQuestionInTableStorage(serviceClient, question)
+}
+
+func getVotesByQuestionId(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint hit: getVotesByQuestionId")
+	vars := mux.Vars(r)
+	id := vars["questionId"]
+
+	serviceClient := getServiceClient()
+	json.NewEncoder(w).Encode(getVotesForQuestionFromTableStorage(serviceClient, id))
+
 }
 
 func handleRequests() {
 	// Lets use the Mux Router, since everyone else does.
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", home)
+	// First questions.
 	router.HandleFunc("/questions", returnAllQuestions)
 	router.HandleFunc("/question", createNewQuestion).Methods("POST")
 	router.HandleFunc("/question/{id}", deleteQuestion).Methods("DELETE")
-	//router.HandleFunc("/question/{id}", returnQuestion)
+	router.HandleFunc("/question/{id}", updateQuestion).Methods("PUT")
+	router.HandleFunc("/question/{id}", returnQuestion)
+
+	// Get Votes by question id
+	router.HandleFunc("/votes/{questionId}", getVotesByQuestionId)
 
 	router.Use(mux.CORSMethodMiddleware(router))
 
