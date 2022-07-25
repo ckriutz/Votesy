@@ -4,9 +4,8 @@
 # Infrastructure
 Infrastructure/docker-compose.debug.yml
 
-# votesy-api
-/votesy-api/node_modules
-votesy-api/docker-compose.debug.yml
+# votesy-api-node
+/votesy-api-node/
 
 # votesy-api-go
 votesy-api-go/docker-compose.debug.yml

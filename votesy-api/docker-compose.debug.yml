@@ -1,0 +1,12 @@
+version: '3.9'
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "10000"
+    ports:
+      - "10000:10000"
+    environment:
+      - AZURE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=votesysg;AccountKey=wkBS4m6swbSWh2PhMaDzlXNtE98b4ynQd28DZp6/vFARA9E3v0fYG87XekrJAADwA3ATiyP0pmH4Pj/GxwniZw==;EndpointSuffix=core.windows.net
