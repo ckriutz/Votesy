@@ -7,3 +7,4 @@ services:
       dockerfile: Dockerfile
     environment:
       - connectionString=[string]
+      - voteUrl=[voteUrl]

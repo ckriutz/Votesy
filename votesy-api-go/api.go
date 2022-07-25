@@ -360,7 +360,6 @@ func handleRequests() {
 func main() {
 	fmt.Println("Hello Votesy!")
 
-	fmt.Println("Authenicating...")
 	serviceClient := getServiceClient()
 	getAllQuestionsFromTableStorage(serviceClient)
 

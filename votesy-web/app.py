@@ -8,21 +8,17 @@ import requests
 
 hostname = socket.gethostname()
 
-connectionString = os.getenv('apiUrl', 'http://localhost:5100')
+connectionString = os.getenv('apiUrl', 'http://localhost:10000')
 resultsUrl = os.getenv('resultsURL', "http://localhost:8080")
-print(connectionString);
-x = requests.get(connectionString + '/questions/current')
-print(x.json())
-
-question = x.json()[0]
-print(question)
 
 app = Flask(__name__)
 
 @app.route("/", methods=['POST','GET'])
 def main():
     vote = None
-
+    print(connectionString + '/question/current')
+    x = requests.get(connectionString + '/question/current')
+    question = x.json()
     if request.method == 'POST':
         # This is where we send it to queue storage.
         vote = request.form['vote']

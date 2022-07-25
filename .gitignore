@@ -8,6 +8,9 @@ Infrastructure/docker-compose.debug.yml
 /votesy-api/node_modules
 votesy-api/docker-compose.debug.yml
 
+# votesy-api-go
+votesy-api-go/docker-compose.debug.yml
+
 # votesy-web
 /votesy-web/__pycache__
 votesy-web/docker-compose.debug.yml

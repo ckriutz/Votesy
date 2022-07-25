@@ -13,10 +13,10 @@
             <h1>Votesy!</h1>
             <div id="content-container">
                 <div id="content-container-center">
-                    <h3>{{question.Text}}</h3>
+                    <h3>{{question.text}}</h3>
                     <form id="choice" name='form' method="POST" action="/">
-                        <button id={{question.Answer1Id}} name="vote" type="submit" class="a" value={{question.Answer1Id}}>{{question.Answer1Text}}</button>
-                        <button id={{question.Answer2Id}} name="vote" type="submit" class="b" value={{question.Answer2Id}}>{{question.Answer2Text}}</button>
+                        <button id={{question.answer1Id}} name="vote" type="submit" class="a" value={{question.answer1Id}}>{{question.answer1Text}}</button>
+                        <button id={{question.answer2Id}} name="vote" type="submit" class="b" value={{question.answer2Id}}>{{question.answer2Text}}</button>
                     </form>
                 </div>
             </div>
@@ -37,23 +37,23 @@
     <script>
         // Yo this is some weird Python in my JavaScript shit here.
         var vote = "{{vote}}";
-        const buttonA = document.getElementById("{{question.Answer1Id}}")        
-        const buttonB = document.getElementById("{{question.Answer2Id}}")
+        const buttonA = document.getElementById("{{question.answer1Id}}")        
+        const buttonB = document.getElementById("{{question.answer2Id}}")
 
-        if(vote == "{{question.Answer1Id}}")
+        if(vote == "{{question.answer1Id}}")
         {
             console.log("Voted for a");
             
             buttonA.disabled = true;
-            buttonA.innerHTML = "{{question.Answer1Text}}<i class='fa fa-check-circle'></i>"
+            buttonA.innerHTML = "{{question.answer1Text}}<i class='fa fa-check-circle'></i>"
             buttonB.style.opacity = '0.5'
         }
-        if(vote == "{{question.Answer2Id}}")
+        if(vote == "{{question.answer2Id}}")
         {
             console.log("Voted for b");
             
             buttonB.disabled = true;
-            buttonB.innerHTML = "{{question.Answer2Text}}<i class='fa fa-check-circle'></i>"
+            buttonB.innerHTML = "{{question.answer2Text}}<i class='fa fa-check-circle'></i>"
             buttonA.style.opacity = '0.5'
         }
     </script>
