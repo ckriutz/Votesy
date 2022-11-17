@@ -9,5 +9,6 @@ services:
     ports:
       - 5002:5002
     environment:
-      - apiUrl=[apiurl]
-      - resultsUrl=[resultsUrl]
+      - apiUrl=http://localhost:10000
+      - resultsUrl="http://localhost:8080"
+      - AZURE_STORAGE_CONNECTION_STRING=[ConnectionString]

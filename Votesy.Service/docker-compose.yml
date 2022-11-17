@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - QueueConnectionString=[string]
-      - Key:[key]
-      - TableName:votes
-      - AccountName:[accountname]
+      - QueueConnectionString=[ConnectionString]
+      - Key=[Key]
+      - TableName=votes
+      - AccountName=votesysg

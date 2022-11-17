@@ -18,10 +18,9 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        go get .
-        # go get github.com/Azure/azure-sdk-for-go/sdk/data/aztables
-        # go get github.com/aidarkhanov/nanoid
-        # go get github.com/gorilla/mux
+        go get github.com/Azure/azure-sdk-for-go/sdk/data/aztables
+        go get github.com/aidarkhanov/nanoid
+        go get github.com/gorilla/mux
 
     - name: Build
       run: go build -v ./api.go

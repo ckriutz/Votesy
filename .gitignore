@@ -3,12 +3,13 @@
 
 # Infrastructure
 Infrastructure/docker-compose.debug.yml
+.env
 
 # votesy-api-node
 /votesy-api-node/
 
 # votesy-api-go
-votesy-api-go/docker-compose.debug.yml
+votesy-api/docker-compose.debug.yml
 
 # votesy-web
 /votesy-web/__pycache__
