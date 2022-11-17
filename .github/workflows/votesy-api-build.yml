@@ -1,6 +1,10 @@
 name: Build Votesy API
 on: [push]
 
+defaults:
+  run:
+    working-directory: votesy-api
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,4 +24,4 @@ jobs:
         go get github.com/gorilla/mux
 
     - name: Build
-      run: go build -v ./votesy-api/api.go
+      run: go build -v ./api.go
