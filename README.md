@@ -17,7 +17,7 @@ I also wanted to use as many different languages and frameworks I could without 
 ## The Different Services
 
 This application is broken out into 4 different projects:
-* votesy-api - A **node.js** REST api that will return the current questions and answers. It will get the current questions and answers from Azure Table Storage.
+* votesy-api - A **golang** REST api that will return the current questions and answers. It will get the current questions and answers from Azure Table Storage.
 * votesy-web - A **Python Flask** project that will call into **votesy-api** to get the current question and answers and display them, allowing the user to vote. When the user votes, it will send a message into Azure Queue Storage.
 * Votesy.Service - A **dotnet core** service that will listen for messages in the queue storage, and then update Azure Table storage with the results.
 * Votesy.Results = A **Java Spring Boot** project that will call into Azure Table storage to get the results and display them.
@@ -25,9 +25,7 @@ This application is broken out into 4 different projects:
 Additionally, there is a **Infrastructure** folder that has all the scripts required to set up the Azure resources, as well as the scripts to deploy.
 
 ## votesy-api
-Will look for the questions table in Azure table storage, and return the questions and answers that are "isActive". This is used by **votsey-web** to display the options, and also by **votsey.results** to get the current question and vote count.
-
-
+Will look for the questions table in Azure table storage, and return the questions and answers that are "isActive". This is used by **votsey-web** to display the options, and also by **votsey.results** to get the current question and vote count. On initial run, it will check to see if there are any questions in the database, and if not, it will add one. Makes it easy for initial deployments!
 
 
 ## FAQ's

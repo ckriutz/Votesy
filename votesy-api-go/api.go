@@ -360,8 +360,26 @@ func handleRequests() {
 func main() {
 	fmt.Println("Hello Votesy!")
 
+	fmt.Println("Authenicating...")
 	serviceClient := getServiceClient()
-	getAllQuestionsFromTableStorage(serviceClient)
+	q := getAllQuestionsFromTableStorage(serviceClient)
+	if len(q) == 0 {
+		// This is a test to see if there are questions. On a new install into an environment, there might
+		// not be any questions, and if that's the case, let's add one.
+		fmt.Println("It seems there are no questions here, lets add the default one.")
+		qst1 := QuestionEntity{
+			Text:        "~ Bear vs Owl ~",
+			Answer1Id:   "0",
+			Answer1Text: "Bear",
+			Answer2Id:   "1",
+			Answer2Text: "Owl",
+			IsCurrent:   true,
+		}
+
+		addQuestionToTableStorage(serviceClient, qst1)
+	} else {
+		fmt.Println("There are", len(q), "questions in storage.")
+	}
 
 	handleRequests()
 }
