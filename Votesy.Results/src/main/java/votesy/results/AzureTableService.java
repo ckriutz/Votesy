@@ -48,9 +48,9 @@ public class AzureTableService {
                 question.PartitionKey = tableEntity.getPartitionKey();
                 question.RowKey = tableEntity.getRowKey();
                 question.text = tableEntity.getProperty("text").toString();
-                question.answer1Id = Integer.parseInt(tableEntity.getProperty("answer1Id").toString());
+                question.answer1Id = tableEntity.getProperty("answer1Id").toString();
                 question.answer1Text = tableEntity.getProperty("answer1Text").toString();
-                question.answer2Id = Integer.parseInt(tableEntity.getProperty("answer2Id").toString());
+                question.answer2Id = tableEntity.getProperty("answer2Id").toString();
                 question.answer2Text = tableEntity.getProperty("answer2Text").toString();
 
                 questions.add(question);

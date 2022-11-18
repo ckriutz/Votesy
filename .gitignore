@@ -3,12 +3,12 @@
 
 # Infrastructure
 Infrastructure/docker-compose.debug.yml
-.env
+Infrastructure/.env.dev
 
 # votesy-api-node
 /votesy-api-node/
 
-# votesy-api-go
+# votesy-api
 votesy-api/docker-compose.debug.yml
 
 # votesy-web

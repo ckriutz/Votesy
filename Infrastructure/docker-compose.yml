@@ -1,0 +1,44 @@
+version: '3.4'
+
+services:
+  votesy-api:
+    build:
+      context: ../votesy-api
+      dockerfile: ../votesy-api/Dockerfile
+    expose:
+      - "10000"
+    ports:
+      - "10000:10000"
+    environment:
+      - AZURE_CONNECTION_STRING=${STORAGE_CONNECTION_STRING}
+  votesyweb:
+    image: votesy-web
+    build:
+      context: ../votesy-web
+      dockerfile: ../votesy-web/Dockerfile
+    ports:
+      - 5002:5002
+    environment:
+      - apiUrl=http://votesy-api:10000
+      - resultsUrl=http://votesy-results:8080
+      - AZURE_STORAGE_CONNECTION_STRING=${STORAGE_CONNECTION_STRING}
+    depends_on:
+      - votesy-api
+  votesy-service:
+    build:
+      context: ../Votesy.Service
+      dockerfile: ../Votesy.Service/Dockerfile
+    environment:
+      - QueueConnectionString=${STORAGE_CONNECTION_STRING}
+      - Key=${KEY}
+      - TableName=votes
+      - AccountName=votesysg
+  votesy-results:
+    build:
+      context: ../Votesy.Results
+      dockerfile: ../Votesy.Results/Dockerfile
+    ports:
+      - 8080:8080
+    environment:
+      - connectionString=${STORAGE_CONNECTION_STRING}
+      - voteUrl=http://localhost:5002
