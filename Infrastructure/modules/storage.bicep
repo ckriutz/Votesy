@@ -4,7 +4,7 @@ param location string
 
 // Here, we create a storage account, which is key to our application!
 resource createStorage 'Microsoft.Storage/storageAccounts@2021-06-01' = {
-  name: 'votesysa'
+  name: 'votesy${uniqueString(resourceGroup().id)}'
   location: location
   sku: {
     name: 'Standard_LRS'

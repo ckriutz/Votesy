@@ -17,7 +17,6 @@ I also wanted to use as many different languages and frameworks I could without 
 ## The Different Services
 
 This application is broken out into 4 different projects:
-* votesy-api - A **golang** REST api that will return the current questions and answers. It will get the current questions and answers from Azure Table Storage.
 * votesy-api - A **Go** REST api that will return the current questions and answers. It will get the current questions and answers from Azure Table Storage, and also allows for most CRUD operations on the table storage.
 * votesy-web - A **Python Flask** project that will call into **votesy-api** to get the current question and answers and display them, allowing the user to vote. When the user votes, it will send a message into Azure Queue Storage.
 * Votesy.Service - A **dotnet core** service that will listen for messages in the queue storage, and then update Azure Table storage with the results.
