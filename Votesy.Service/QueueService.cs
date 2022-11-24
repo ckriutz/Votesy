@@ -9,13 +9,11 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using Azure.Data.Tables;
 
-public class QueueService : IHostedService, IDisposable
+public class QueueService : BackgroundService
 {
     private readonly ILogger<QueueService> _logger;
-    private Timer _timer;
 
     // I don't like them being here, but, lets just grab these once.
-    
     // The connection string here is the connection string to the Queue Storage.
     string _connectionString;
     
@@ -41,28 +39,15 @@ public class QueueService : IHostedService, IDisposable
         _storageUri = $"https://{_accountName}.table.core.windows.net/{_tableName}";
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Service is starting.");
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Checking for Messages...");
+            await GetMessagesFromQueue(_tableName);
 
-        // This tells us to run the DoWork method every 1 seconds.
-        _timer = new Timer(MonitorQueue, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
-
-        return Task.CompletedTask;
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Service is stopping.");
-        _timer?.Change(Timeout.Infinite, 0);
-
-        return Task.CompletedTask;
-    }
-
-    private async void MonitorQueue(object state)
-    {
-        _logger.LogInformation("Checking for Messages...");
-        await GetMessagesFromQueue(_tableName);
+            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+        }
     }
 
     //-------------------------------------------------
@@ -121,6 +106,8 @@ public class QueueService : IHostedService, IDisposable
         catch (Azure.RequestFailedException rfe)
         {
             // oh shit it's null.
+            _logger.LogError(rfe.ToString());
+            
             // This isn't maybe the best way to handle this, but I'm single person hackathoning this, so it works for now.
             VoteEntity qEntity = new VoteEntity();
             qEntity.VoteCount = 0;
@@ -133,10 +120,5 @@ public class QueueService : IHostedService, IDisposable
             Console.WriteLine(ex.Message);
         }
 
-    }
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
     }
 }
