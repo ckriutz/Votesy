@@ -45,14 +45,49 @@ module vosesyapi './modules/containerapp.bicep' = {
     useExternalIngress: false
     containerPort: 10000
     envVars: [
-        {
-          name: 'AZURE_CONNECTION_STRING'
-          value: storageConnectionString
+      {
+        name: 'AZURE_CONNECTION_STRING'
+        value: storageConnectionString
+      }
+      {
+        name: 'KEY'
+        value: storageKey
+      }
+    ]
+    probes: [
+      {
+        type: 'liveness'
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        failureThreshold: 3
+        timeoutSeconds: 1
+        httpGet: {
+          port: 10000
+          path: '/health/liveness'
         }
-        {
-          name: 'KEY'
-          value: storageKey
+      }
+      {
+        type: 'startup'
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        failureThreshold: 3
+        timeoutSeconds: 2
+        httpGet: {
+          port: 10000
+          path: '/health/startup'
         }
+      }
+      {
+        type: 'readiness'
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        failureThreshold: 3
+        timeoutSeconds: 2
+        httpGet: {
+          port: 10000
+          path: '/health/readiness'
+        }
+      }
     ]
     registry: registry
     registryUsername: registryUsername
@@ -144,6 +179,41 @@ module votesyweb './modules/containerapp.bicep' = {
           name: 'AZURE_STORAGE_CONNECTION_STRING'
           value: storageConnectionString
         }
+    ]
+    probes: [
+      {
+        type: 'liveness'
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        failureThreshold: 3
+        timeoutSeconds: 1
+        httpGet: {
+          port: 10000
+          path: '/health/liveness'
+        }
+      }
+      {
+        type: 'startup'
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        failureThreshold: 3
+        timeoutSeconds: 2
+        httpGet: {
+          port: 10000
+          path: '/health/startup'
+        }
+      }
+      {
+        type: 'readiness'
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        failureThreshold: 3
+        timeoutSeconds: 2
+        httpGet: {
+          port: 10000
+          path: '/health/readiness'
+        }
+      }
     ]
     registry: registry
     registryUsername: registryUsername

@@ -335,8 +335,24 @@ func getVotesByQuestionId(w http.ResponseWriter, r *http.Request) {
 
 	serviceClient := getServiceClient()
 	json.NewEncoder(w).Encode(getVotesForQuestionFromTableStorage(serviceClient, id))
-
 }
+
+// Readyness functions
+func ready(w http.ResponseWriter, r *http.Request) {
+	time.Sleep(time.Second)
+	w.WriteHeader(http.StatusOK)
+}
+
+func liveness(w http.ResponseWriter, r *http.Request) {
+	time.Sleep(250 * time.Millisecond)
+	w.WriteHeader(http.StatusOK)
+}
+
+func startup(w http.ResponseWriter, r *http.Request) {
+	time.Sleep(400 * time.Millisecond)
+	w.WriteHeader(http.StatusOK)
+}
+
 
 func handleRequests() {
 	// Lets use the Mux Router, since everyone else does.
@@ -351,6 +367,11 @@ func handleRequests() {
 
 	// Get Votes by question id
 	router.HandleFunc("/votes/{questionId}", getVotesByQuestionId)
+
+	// Let us add readyness probes!
+	router.HandleFunc("/health/readiness", ready)
+	router.HandleFunc("/health/liveness", liveness)
+	router.HandleFunc("/health/startup", startup)
 
 	router.Use(mux.CORSMethodMiddleware(router))
 

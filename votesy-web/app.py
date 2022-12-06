@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
 from azure.storage.queue import (QueueClient, BinaryBase64EncodePolicy, BinaryBase64DecodePolicy)
 import os
-import uuid
+import time
 import socket
 import json
 import requests
@@ -31,6 +31,24 @@ def main():
         connectionString = connectionString, 
         vote = vote, 
         resultsUrl = resultsUrl)
+
+@app.route("/health/readiness", methods=['GET'])
+def readiness():
+    time.sleep(1)
+    resp = {"status_code":200}
+    return json.dumps(resp)
+
+@app.route("/health/liveness", methods=['GET'])
+def liveness():
+    time.sleep(.25)
+    resp = {"status_code":200}
+    return json.dumps(resp)
+
+@app.route("/health/startup", methods=['GET'])
+def startup():
+    time.sleep(.5)
+    resp = {"status_code":200}
+    return json.dumps(resp)
 
 def sendMessage(message):
     # Get the AZURE_STORAGE_CONNECTION_STRING

@@ -19,6 +19,8 @@ param registryPassword string
 
 param envVars array = []
 
+param probes array = []
+
 resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
   name: name
   location: location
@@ -56,6 +58,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
           image: containerImage
           name: name
           env: envVars
+          probes: probes
         }
       ]
       scale: {
