@@ -28,6 +28,8 @@ services:
     build:
       context: ../Votesy.Service
       dockerfile: ../Votesy.Service/Dockerfile
+    ports:
+      - 7999:80
     environment:
       - QueueConnectionString=${STORAGE_CONNECTION_STRING}
       - Key=${KEY}

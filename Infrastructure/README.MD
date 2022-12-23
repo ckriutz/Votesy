@@ -82,8 +82,9 @@ $env:ACRPASSWORD=$(az acr credential show -n $env:REGISTRY --query "passwords[0]
 
 $env:CONNECTIONSTRING = "<connection_string>"
 $env:KEY = "<key>"
-$env:STORAGENAME ="<name_of_storage_account>"
+$env:STORAGENAME = "<name_of_storage_account>"
 
 az deployment group create -n container-app -g rg-votesy --template-file ./container-app-main.bicep -p registry=<registry_name> registryUsername=$env:ACRUSER registryPassword=$env:ACRPASSWORD storageConnectionString=$env:CONNECTIONSTRING storageKey=$env:KEY storageName=$env:STORAGENAME
+
 
 ## Instructions for Azure Kubernetes Service

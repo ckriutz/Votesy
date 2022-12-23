@@ -105,7 +105,7 @@ module votseyservice './modules/containerapp.bicep' = {
     // We do not need external ingress on this since it doens't need to be accessed outside of the App.
     useExternalIngress: false
     enableIngress: false
-    containerPort: 7999 // Don't actually need this.
+    containerPort: 7999
     envVars: [
       {
         name: 'QueueConnectionString'
@@ -122,6 +122,19 @@ module votseyservice './modules/containerapp.bicep' = {
       {
         name: 'AccountName'
         value: storageName
+      }
+    ]
+    probes: [
+      {
+        type: 'liveness'
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        failureThreshold: 3
+        timeoutSeconds: 1
+        httpGet: {
+          port: 7999
+          path: '/health/'
+        }
       }
     ]
     registry: registry

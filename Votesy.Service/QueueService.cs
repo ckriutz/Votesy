@@ -1,15 +1,9 @@
-using Microsoft.Extensions.Hosting;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using System.Configuration;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
-using System.Text.Json.Serialization;
 using System.Text.Json;
 using Azure.Data.Tables;
 
-public class QueueService : BackgroundService
+public class QueueService
 {
     private readonly ILogger<QueueService> _logger;
 
@@ -39,15 +33,10 @@ public class QueueService : BackgroundService
         _storageUri = $"https://{_accountName}.table.core.windows.net/{_tableName}";
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public async Task<Boolean> GetStatusAsync(string queueName)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            _logger.LogInformation("Checking for Messages...");
-            await GetMessagesFromQueue(_tableName);
-
-            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
-        }
+        QueueClient queueClient = new QueueClient(_connectionString, queueName);
+        return await queueClient.ExistsAsync();
     }
 
     //-------------------------------------------------
@@ -59,27 +48,38 @@ public class QueueService : BackgroundService
         QueueClient queueClient = new QueueClient(_connectionString, queueName);
 
         // Get messages from the queue
-        QueueMessage[] messages = await queueClient.ReceiveMessagesAsync(maxMessages: 10);
-
-        if(messages.Count() == 0)
+        try
         {
-            _logger.LogInformation("No votes to record at this time.");
-        }
-        else
-        {
-            foreach(QueueMessage m in messages)
+            QueueMessage[] messages = await queueClient.ReceiveMessagesAsync(maxMessages: 10);
+            if(messages.Count() == 0)
             {
-                // "Process" the message
-                Console.WriteLine($"Message: {m.MessageText}");
-                Vote vote = JsonSerializer.Deserialize<Vote>(m.MessageText);
+                _logger.LogInformation("No votes to record at this time.");
+            }
+            else
+            {
+                foreach(QueueMessage m in messages)
+                {
+                    // "Process" the message
+                    Console.WriteLine($"Message: {m.MessageText}");
+                    Vote vote = JsonSerializer.Deserialize<Vote>(m.MessageText);
 
-                await UpdateVoteCount(vote);
+                    await UpdateVoteCount(vote);
 
-                // Let the service know we're finished with
-                // the message and it can be safely deleted.
-                await queueClient.DeleteMessageAsync(m.MessageId, m.PopReceipt);
+                    // Let the service know we're finished with
+                    // the message and it can be safely deleted.
+                    await queueClient.DeleteMessageAsync(m.MessageId, m.PopReceipt);
+                }
             }
         }
+        catch(System.Net.Http.HttpRequestException NoHostIsKnownException)
+        {
+            _logger.LogError(NoHostIsKnownException.ToString());
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError(ex.ToString());
+        } 
+        
         
     }
 

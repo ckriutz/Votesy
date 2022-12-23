@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    ports:
+      - 7999:80
     environment:
       - QueueConnectionString=[ConnectionString]
       - Key=[Key]

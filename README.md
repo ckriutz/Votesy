@@ -30,11 +30,17 @@ Will look for the questions table in Azure table storage, and return the questio
 The website will be exposed on port 5002, whoch is hardcoded (for now), so the orchistration needs to match that as well.
 
 ## Votesy.Service
-A dotnet 6 Service. It's designed to check the queue storage every 5 seconds, process the message, and update the number of votes in the process. None of the other services connect to this service.
+A dotnet 6 Service. It's designed to check the queue storage every 5 seconds, process the message, and update the number of votes in the process. None of the other services connect to this service. It's a asp.net app, sort of, because we enables health probes, which for now, require us to be able to resolve an endpoint. That Endpoint is on 7999.
 
 ## Votesy.Results
 A Java Spring Boot Application. It connects to the **votesy-api** to get the current question and votes in order to display that information. I originally started building this out as a Blazor application, but wanted yet another framework to build out. I'd never done Java Spring Boot before, so I wanted an oppertunity. It was a pain, but works well.
 
 The endpoint is set to port 8080, and that's hardcoded (for now), so the orchistration needs to match that as well.
+
+## Efforts to add health checks to the services:
+✅ votesy-api
+🚫 votesy-results
+✅ votesy-service
+✅ votesy-web
 
 ## FAQ's
