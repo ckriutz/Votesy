@@ -163,6 +163,19 @@ module votseyresults 'modules/containerapp.bicep' = {
         value: 'https://votesy-web.${containerAppEnvironment.outputs.id}.${location}.azurecontainerapps.io'
       }
     ]
+    probes: [
+      {
+        type: 'liveness'
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        failureThreshold: 3
+        timeoutSeconds: 1
+        httpGet: {
+          port: 8080
+          path: '/actuator/health'
+        }
+      }
+    ]
     registry: registry
     registryUsername: registryUsername
     registryPassword: registryPassword
