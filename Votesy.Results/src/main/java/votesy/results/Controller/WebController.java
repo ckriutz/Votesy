@@ -19,7 +19,6 @@ public class WebController {
         Question currentQuestion = ats.getCurrentQuestion();
         ArrayList<Vote> votes = ats.getVotesForQuestion(currentQuestion);
         String voteUrl = System.getenv("voteUrl");
-
         System.out.println(voteUrl);
 
         model.addAttribute("question", currentQuestion.text);
