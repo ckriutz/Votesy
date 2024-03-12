@@ -8,7 +8,6 @@ services:
     ports:
       - 7999:80
     environment:
-      - QueueConnectionString=[ConnectionString]
-      - Key=[Key]
-      - TableName=votes
-      - AccountName=votesysg
+      - RABBITMQ_HOST=[ConnectionString]
+      - REDIS_HOST=[ConnectionString]
+

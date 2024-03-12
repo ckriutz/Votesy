@@ -11,4 +11,4 @@ services:
     environment:
       - apiUrl=http://localhost:10000
       - resultsURL="http://localhost:8080"
-      - AZURE_STORAGE_CONNECTION_STRING=[ConnectionString]
+      - RabbitMQHost="192.168.239"

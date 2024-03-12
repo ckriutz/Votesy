@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -32,8 +33,10 @@ type VoteEntity struct {
 }
 
 func getRedisClient() *redis.Client {
+	// Get the connection string from the environment.
+	redisConnectionString := os.Getenv("REDIS_CONNECTION_STRING")
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "192.168.0.239:6379",
+		Addr:     redisConnectionString,
 		Password: "",
 		DB:       0,
 	})
@@ -244,6 +247,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 func returnAllQuestions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Println("Endpoint hit: returnAllQuestions")
 
 	redisClient := getRedisClient()
@@ -251,6 +255,7 @@ func returnAllQuestions(w http.ResponseWriter, r *http.Request) {
 }
 
 func returnQuestion(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Println("Endpoint hit: returnQuestion")
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -260,6 +265,7 @@ func returnQuestion(w http.ResponseWriter, r *http.Request) {
 }
 
 func createNewQuestion(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Println("Endpoint hit: createQuestion")
 	// get the body of our POST request
 	// return the string response containing the request body
@@ -275,6 +281,7 @@ func createNewQuestion(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteQuestion(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Println("Endpoint hit: deleteQuestion")
 
 	vars := mux.Vars(r)
@@ -288,6 +295,7 @@ func deleteQuestion(w http.ResponseWriter, r *http.Request) {
 }
 
 func getVotesByQuestionId(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Println("Endpoint hit: getVotesByQuestionId")
 	vars := mux.Vars(r)
 	id := vars["questionId"]

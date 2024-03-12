@@ -9,4 +9,4 @@ services:
     ports:
       - "10000:10000"
     environment:
-      - AZURE_CONNECTION_STRING=[ConnectionString]
+      - REDIS_CONNECTION_STRING=[ConnectionString]

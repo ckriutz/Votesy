@@ -35,12 +35,12 @@ services:
       - Key=${KEY}
       - TableName=votes
       - AccountName=votesysg
-  votesy-results:
-    build:
-      context: ../Votesy.Results
-      dockerfile: ../Votesy.Results/Dockerfile
-    ports:
-      - 8080:8080
-    environment:
-      - connectionString=${STORAGE_CONNECTION_STRING}
-      - voteUrl=http://localhost:5002
+  #votesy-results:
+  #  build:
+  #    context: ../Votesy.Results
+  #    dockerfile: ../Votesy.Results/Dockerfile
+  #  ports:
+  #    - 8080:8080
+  #  environment:
+  #    - connectionString=${STORAGE_CONNECTION_STRING}
+  #    - voteUrl=http://localhost:5002
