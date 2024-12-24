@@ -9,4 +9,4 @@ services:
     ports:
       - "10000:10000"
     environment:
-      - REDIS_CONNECTION_STRING=[ConnectionString]
+      - STORAGE_CONNECTION_STRING=[ConnectionString]

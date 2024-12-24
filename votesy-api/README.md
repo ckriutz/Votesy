@@ -1,11 +1,13 @@
 # Votesy API
 
-The Votesy API is designed to provide CRUD operations on the list of questions and answers that are in the database, including which is the current question.
+The Votesy API is designed to provide CRUD operations on the list of questions and answers, and the number of Votes that are in the database, including which is the current question.
 
-This API is written in GO.
+This API is written in GO. Why? I dont know, I thought writing it in Go would be fun. It was, but there were times when I thought that writing it in dotnet would have been easier. Time will tellI suppose.
 
-Right now, I've made the decision to store everything in Redis. This should be more than fine for several hundred questions, but after that, the payload is going to be too large to send all the questions back to the user, so we're going to have to update this.
+The data **was** using Redis to store all the data, but that has since been removed, and replaced with Azure Table Storage. Ideally, in the future, the storage would be a database, and data cached in Redis, but that time is not now. Honestly, I think the performance will be fine. If it proves me wrong, I'll try another solution.
 
-The golang Redis tool doesn't allow for the RedisStack commands which would make this so much easier. That would allow me to query Redis in ways that would make it work beyond several hundred questions. I can also investigate writing those commands myself, and that might work.
+To get this to work, you will need to add a ENV variable for table storage:
 
-If those don't work, I'll need to strongly consider writing questions and answers to a standard database. I'm not thrilled with the Redis database tools either, so it's a mixed bag. This should work for now.
+```
+STORAGE_CONNECTION_STRING
+```
