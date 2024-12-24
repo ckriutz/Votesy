@@ -27,18 +27,16 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6.9.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4.1.1
-        with:
-          context: "{{defaultContext}}:votesy-api"
-          platforms: linux/arm64, linux/amd64
+          context: ./votesy-api
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/ckriutz/votesy-api:latest
-            ghcr.io/ckriutz/votesy-api:${{ github.run_number }}
-            labels: ${{ steps.meta.outputs.tags }}
+            ghcr.io/ckriutz/votesy-api:${{github.run_number}}

@@ -1,4 +1,4 @@
-FROM golang:alpine as builder
+FROM golang:alpine AS builder
 
 # I guess we need to enable go modules?
 #ENV GO111MODULE=on
