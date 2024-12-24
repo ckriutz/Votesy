@@ -8,237 +8,379 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/data/aztables"
 	"github.com/aidarkhanov/nanoid"
 	"github.com/gorilla/mux"
-	"github.com/redis/go-redis/v9"
 )
 
 type QuestionEntity struct {
+	aztables.Entity
 	Id          string `json:"id"`
 	Text        string `json:"text"`
 	Answer1Id   string `json:"answer1Id"`
 	Answer1Text string `json:"answer1Text"`
 	Answer2Id   string `json:"answer2Id"`
 	Answer2Text string `json:"answer2Text"`
+	Answer3Id   string `json:"answer3Id"`
+	Answer3Text string `json:"answer3Text"`
+	Answer4Id   string `json:"answer4Id"`
+	Answer4Text string `json:"answer4Text"`
 	IsCurrent   bool   `json:"isCurrent"`
+	IsUsed      bool   `json:"isUsed"`
 	CreatedDate time.Time
 }
 
 type VoteEntity struct {
+	aztables.Entity
 	Id        string `json:"id"`
 	VoteCount int32  `json:"voteCount"`
 }
 
-func getRedisClient() *redis.Client {
+func getTableServiceClient() *aztables.ServiceClient {
 	// Get the connection string from the environment.
-	redisConnectionString := os.Getenv("REDIS_CONNECTION_STRING")
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     redisConnectionString,
-		Password: "",
-		DB:       0,
-	})
+	storageConnectionString := os.Getenv("STORAGE_CONNECTION_STRING")
+	serviceClient, err := aztables.NewServiceClientFromConnectionString(storageConnectionString, nil)
+	if err != nil {
+		panic(err)
+	}
 
-	return redisClient
+	return serviceClient
 }
 
-func getCurrentQuestionFromRedis(redisClient *redis.Client) QuestionEntity {
-	fmt.Println("Getting the current question from Redis...")
-	var ctx = context.Background()
+func getCurrentQuestionFromStorage(serviceClient *aztables.ServiceClient) QuestionEntity {
+	fmt.Println("Getting the current question from Table Storage...")
 
-	// Get the current question.
-	question, err := redisClient.Get(ctx, "question:current").Result()
-	if err != nil {
-		panic(err)
+	// Get the current question from storage.
+	filter := "isCurrent eq true"
+	options := &aztables.ListEntitiesOptions{
+		Filter: &filter,
 	}
 
-	var currentQuestion QuestionEntity
-	err = json.Unmarshal([]byte(question), &currentQuestion)
-	if err != nil {
-		panic(err)
-	}
+	// Now check to see if the count is 0, if it is, we need to add some questions.
+	pager := serviceClient.NewClient("questions").NewListEntitiesPager(options)
+	entity := QuestionEntity{}
 
-	return currentQuestion
-}
-
-func getAllQuestionsFromStorage(redisClient *redis.Client) []QuestionEntity {
-	Quesitons := []QuestionEntity{}
-
-	// Get the number of questions in the questions list in redis.
-	var ctx = context.Background()
-
-	qlist, err := redisClient.SMembers(ctx, "questions").Result()
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("qlist: %v\n", qlist)
-
-	for _, entity := range qlist {
-		var myEntity QuestionEntity
-
-		err = json.Unmarshal([]byte(entity), &myEntity)
+	for {
+		if !pager.More() {
+			break
+		}
+		resp, _ := pager.NextPage(context.Background())
+		if resp.Entities == nil {
+			fmt.Println("No questions found.")
+			break
+		}
+		err := json.Unmarshal([]byte(resp.Entities[0]), &entity)
 		if err != nil {
 			panic(err)
 		}
-		Quesitons = append(Quesitons, myEntity)
+		break
 	}
-	//fmt.Printf("qlist: %v\n", qlist)
 
-	//cnt, err := redisClient.LLen(ctx, "questions").Result()
-	//if err != nil {
-	//panic(err)
-	//}
-
-	//questions, _ := redisClient.LRange(ctx, "questions", 0, cnt).Result()
-	//for _, entity := range questions {
-	//	var myEntity QuestionEntity
-
-	//	err = json.Unmarshal([]byte(entity), &myEntity)
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	Quesitons = append(Quesitons, myEntity)
-	//}
-
-	return Quesitons
+	return entity
 }
 
-func getQuestionFromStorage(redisClient *redis.Client, id string) QuestionEntity {
-	// Get the question from Redis based on the Id.
+func getAllQuestionsFromStorage(serviceClient *aztables.ServiceClient, partitionKey string) []QuestionEntity {
+	questions := []QuestionEntity{}
+	ctx := context.Background()
+
+	filter := fmt.Sprintf("PartitionKey eq '%s'", partitionKey)
+	options := &aztables.ListEntitiesOptions{
+		Filter: &filter,
+	}
+	// Create a pager to list entities
+	pager := serviceClient.NewClient("questions").NewListEntitiesPager(options)
+
+	for pager.More() {
+		resp, err := pager.NextPage(ctx)
+		if err != nil {
+			panic(err)
+		}
+		for _, entity := range resp.Entities {
+			var questionEntity QuestionEntity
+			err = json.Unmarshal(entity, &questionEntity)
+			if err != nil {
+				panic(err)
+			}
+			questions = append(questions, questionEntity)
+		}
+	}
+
+	return questions
+}
+
+func getQuestionFromStorage(serviceClient *aztables.ServiceClient, partitionKey, rowKey string) (QuestionEntity, error) {
 	var ctx = context.Background()
-	question, err := redisClient.Get(ctx, "question:"+id).Result()
+	tableClient := serviceClient.NewClient("questions")
+
+	// Get the entity from Azure Table Storage
+	resp, err := tableClient.GetEntity(ctx, partitionKey, rowKey, nil)
 	if err != nil {
-		panic(err)
+		return QuestionEntity{}, err
 	}
 
-	var questionEnty QuestionEntity
-	err = json.Unmarshal([]byte(question), &questionEnty)
+	// Unmarshal the entity into a QuestionEntity struct
+	var questionEntity QuestionEntity
+	err = json.Unmarshal(resp.Value, &questionEntity)
 	if err != nil {
-		panic(err)
+		return QuestionEntity{}, err
 	}
 
-	return questionEnty
+	return questionEntity, nil
 }
 
-func addQuestionToStorage(redisClient *redis.Client, question QuestionEntity) QuestionEntity {
+func addQuestionToStorage(serviceClient *aztables.ServiceClient, question QuestionEntity) QuestionEntity {
+	fmt.Println("Adding Entity to Azure Table Storage...")
+
 	// Have to create both the question AND the votes.
+	ctx := context.Background()
+	alphabet := "abcdefghijklmnopqrstuvwxyz0123456789"
 
-	// So, first thing we need to do is update the id's of the Question.
-	alphabet := nanoid.DefaultAlphabet
-
+	// Row Id
 	id, err := nanoid.Generate(alphabet, 5)
 	if err != nil {
 		panic(err)
 	}
 
-	answerid1, err := nanoid.Generate(alphabet, 5) //> "i25_4"
+	// Answer 1 Id
+	answer1Id, err := nanoid.Generate(alphabet, 5)
 	if err != nil {
 		panic(err)
 	}
 
-	answerid2, err := nanoid.Generate(alphabet, 5) //> "i25_4"
+	// Answer 2 Id
+	answer2Id, err := nanoid.Generate(alphabet, 5)
 	if err != nil {
 		panic(err)
 	}
 
+	// Create the votes for the answers.
+	votes1 := VoteEntity{
+		Entity: aztables.Entity{
+			PartitionKey: "votes",
+			RowKey:       answer1Id,
+		},
+		Id:        answer1Id,
+		VoteCount: 0,
+	}
+	votes1Bytes, err := json.Marshal(votes1)
+	if err != nil {
+		panic(err)
+	}
+	serviceClient.NewClient("votes").AddEntity(ctx, votes1Bytes, nil)
+
+	votes2 := VoteEntity{
+		Entity: aztables.Entity{
+			PartitionKey: "votes",
+			RowKey:       answer2Id,
+		},
+		Id:        answer2Id,
+		VoteCount: 0,
+	}
+	votes2Bytes, err := json.Marshal(votes2)
+	if err != nil {
+		panic(err)
+	}
+	serviceClient.NewClient("votes").AddEntity(ctx, votes2Bytes, nil)
+
+	// Sometimes we have 4 answers.
+	if question.Answer3Text != "" {
+		// Answer 3 Id
+		answer3Id, err := nanoid.Generate(alphabet, 5)
+		if err != nil {
+			panic(err)
+		}
+		question.Answer3Id = answer3Id
+		votes3 := VoteEntity{
+			Entity: aztables.Entity{
+				PartitionKey: "votes",
+				RowKey:       answer3Id,
+			},
+			Id:        answer3Id,
+			VoteCount: 0,
+		}
+		votes3Bytes, err := json.Marshal(votes3)
+		if err != nil {
+			panic(err)
+		}
+		serviceClient.NewClient("votes").AddEntity(ctx, votes3Bytes, nil)
+	}
+
+	// Sometimes we have 4 answers.
+	if question.Answer4Text != "" {
+		// Answer 3 Id
+		answer4Id, err := nanoid.Generate(alphabet, 5)
+		if err != nil {
+			panic(err)
+		}
+		question.Answer4Id = answer4Id
+		votes4 := VoteEntity{
+			Entity: aztables.Entity{
+				PartitionKey: "votes",
+				RowKey:       answer4Id,
+			},
+			Id:        answer4Id,
+			VoteCount: 0,
+		}
+		votes4Bytes, err := json.Marshal(votes4)
+		if err != nil {
+			panic(err)
+		}
+		serviceClient.NewClient("votes").AddEntity(ctx, votes4Bytes, nil)
+	}
+
+	question.Entity.PartitionKey = "questions"
+	question.Entity.RowKey = id
 	question.Id = id
-	question.Answer1Id = answerid1
-	question.Answer2Id = answerid2
+	question.Answer1Id = answer1Id
+	question.Answer2Id = answer2Id
 	question.CreatedDate = time.Now()
+	question.IsUsed = false
 
-	marshalledQuestion, err := json.Marshal(question)
+	questionBytes, err := json.Marshal(question)
 	if err != nil {
 		panic(err)
 	}
 
-	var ctx = context.Background()
-	redisClient.SAdd(ctx, "questions", marshalledQuestion)
-	redisClient.Set(ctx, "question:"+question.Id, marshalledQuestion, 0)
-	redisClient.Set(ctx, "votes:"+question.Answer1Id, 0, 0)
-	redisClient.Set(ctx, "votes:"+question.Answer2Id, 0, 0)
+	serviceClient.NewClient("questions").AddEntity(ctx, questionBytes, nil)
 
+	fmt.Println("Done adding Entity to Azure Table Storage...")
 	return question
+
 }
 
-func deleteQuestionFromStorage(redisClient *redis.Client, questionId string) bool {
+func deleteQuestionFromStorage(serviceClient *aztables.ServiceClient, partitionKey, rowKey string) bool {
 	var ctx = context.Background()
 
-	fmt.Println("Deleting question with id: " + questionId)
+	fmt.Println("Deleting question with id: " + rowKey)
 
 	// We need to get the question so we can get the answer id's.
-	question := getQuestionFromStorage(redisClient, questionId)
-
-	// Delete the question
-	rslt, err := redisClient.Del(ctx, "question:"+questionId).Result()
+	question, err := getQuestionFromStorage(serviceClient, partitionKey, rowKey)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(rslt)
 
-	// Delete question from the set
-	questionString, _ := json.Marshal(question)
-	fmt.Println(question)
-	rslts, errsrem := redisClient.SRem(ctx, "questions", questionString).Result()
-	if errsrem != nil {
-		panic(errsrem)
-	}
-	fmt.Println(rslts)
+	// Delete the question
+	serviceClient.NewClient("questions").DeleteEntity(ctx, partitionKey, rowKey, nil)
 
-	// Delete the votes
-	rsltsv1, errv1 := redisClient.Del(ctx, "votes:"+question.Answer1Id).Result()
-	if errv1 != nil {
-		panic(errv1)
+	// Then, delete the votes.
+	if question.Answer1Id != "" {
+		serviceClient.NewClient("votes").DeleteEntity(ctx, "votes", question.Answer1Id, nil)
 	}
-	fmt.Println(rsltsv1)
 
-	rsltsv2, errv2 := redisClient.Del(ctx, "votes:"+question.Answer2Id).Result()
-	if errv2 != nil {
-		panic(errv2)
+	if question.Answer2Id != "" {
+		serviceClient.NewClient("votes").DeleteEntity(ctx, "votes", question.Answer2Id, nil)
 	}
-	fmt.Println(rsltsv2)
+
+	if question.Answer3Id != "" {
+		serviceClient.NewClient("votes").DeleteEntity(ctx, "votes", question.Answer3Id, nil)
+	}
+
+	if question.Answer4Id != "" {
+		serviceClient.NewClient("votes").DeleteEntity(ctx, "votes", question.Answer4Id, nil)
+	}
 
 	return true
 }
 
-func getVotesForQuestionFromStorage(redisClient *redis.Client, questionId string) []VoteEntity {
+func getVotesForQuestionFromStorage(serviceClient *aztables.ServiceClient, partitionKey, rowKey string) []VoteEntity {
 	Votes := []VoteEntity{}
 
-	// So we need to look up all the votes for the question, based on the quesstionId.
+	// 	// So we need to look up all the votes for the question, based on the quesstionId.
 	var ctx = context.Background()
 
 	// Get the question from Redis based on the Id.
-	question := getQuestionFromStorage(redisClient, questionId)
-
-	// Now we have the question, we can get the votes.
-	vote1, err := redisClient.Get(ctx, "votes:"+question.Answer1Id).Result()
+	question, err := getQuestionFromStorage(serviceClient, partitionKey, rowKey)
 	if err != nil {
 		panic(err)
 	}
 
-	vote2, err := redisClient.Get(ctx, "votes:"+question.Answer2Id).Result()
+	// Get all the votes for the question.
+	tableClient := serviceClient.NewClient("votes")
+
+	// Get the entity from Azure Table Storage
+	vote1, err := tableClient.GetEntity(ctx, "votes", question.Answer1Id, nil)
 	if err != nil {
 		panic(err)
 	}
-
-	vote1_int64, _ := strconv.ParseInt(vote1, 10, 32)
-	vote2_int64, _ := strconv.ParseInt(vote2, 10, 32)
-
-	vote1Entity := VoteEntity{
-		Id:        question.Answer1Id,
-		VoteCount: int32(vote1_int64),
+	var vote1Entity VoteEntity
+	err = json.Unmarshal(vote1.Value, &vote1Entity)
+	if err != nil {
+		panic(err)
 	}
-	vote2Entity := VoteEntity{
-		Id:        question.Answer2Id,
-		VoteCount: int32(vote2_int64),
-	}
-
 	Votes = append(Votes, vote1Entity)
+
+	vote2, err := tableClient.GetEntity(ctx, "votes", question.Answer2Id, nil)
+	if err != nil {
+		panic(err)
+	}
+	var vote2Entity VoteEntity
+	err = json.Unmarshal(vote2.Value, &vote2Entity)
+	if err != nil {
+		panic(err)
+	}
 	Votes = append(Votes, vote2Entity)
 
+	// If there are more...
+	if question.Answer3Id != "" {
+		vote3, err := tableClient.GetEntity(ctx, "votes", question.Answer3Id, nil)
+		if err != nil {
+			panic(err)
+		}
+		var vote3Entity VoteEntity
+		err = json.Unmarshal(vote3.Value, &vote3Entity)
+		if err != nil {
+			panic(err)
+		}
+		Votes = append(Votes, vote3Entity)
+	}
+
+	if question.Answer4Id != "" {
+		vote4, err := tableClient.GetEntity(ctx, "votes", question.Answer4Id, nil)
+		if err != nil {
+			panic(err)
+		}
+		var vote4Entity VoteEntity
+		err = json.Unmarshal(vote4.Value, &vote4Entity)
+		if err != nil {
+			panic(err)
+		}
+		Votes = append(Votes, vote4Entity)
+	}
+
 	return Votes
+}
+
+func updateQuestionInStorage(serviceClient *aztables.ServiceClient, partitionKey, rowKey string, question QuestionEntity) QuestionEntity {
+	fmt.Println("Updating Entity in Azure Table Storage...")
+
+	// Get the question from storage.
+	questionEntity, err := getQuestionFromStorage(serviceClient, partitionKey, rowKey)
+	if err != nil {
+		panic(err)
+	}
+
+	// Update the question.
+	questionEntity.Text = question.Text
+	questionEntity.Answer1Text = question.Answer1Text
+	questionEntity.Answer2Text = question.Answer2Text
+	questionEntity.Answer3Text = question.Answer3Text
+	questionEntity.Answer4Text = question.Answer4Text
+	questionEntity.IsCurrent = question.IsCurrent
+	questionEntity.IsUsed = question.IsUsed
+
+	// Update the question in storage.
+	questionBytes, err := json.Marshal(questionEntity)
+	if err != nil {
+		panic(err)
+	}
+
+	serviceClient.NewClient("questions").UpdateEntity(context.Background(), questionBytes, nil)
+
+	fmt.Println("Done updating Entity in Azure Table Storage...")
+	return questionEntity
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -250,18 +392,24 @@ func returnAllQuestions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Println("Endpoint hit: returnAllQuestions")
 
-	redisClient := getRedisClient()
-	json.NewEncoder(w).Encode(getAllQuestionsFromStorage(redisClient))
+	client := getTableServiceClient()
+	json.NewEncoder(w).Encode(getAllQuestionsFromStorage(client, "questions"))
 }
 
 func returnQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Println("Endpoint hit: returnQuestion")
 	vars := mux.Vars(r)
-	id := vars["id"]
+	partitionKey := vars["partitionKey"]
+	rowKey := vars["rowKey"]
 
-	redisClient := getRedisClient()
-	json.NewEncoder(w).Encode(getQuestionFromStorage(redisClient, id))
+	client := getTableServiceClient()
+	question, err := getQuestionFromStorage(client, partitionKey, rowKey)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+	json.NewEncoder(w).Encode(question)
 }
 
 func createNewQuestion(w http.ResponseWriter, r *http.Request) {
@@ -274,8 +422,8 @@ func createNewQuestion(w http.ResponseWriter, r *http.Request) {
 	var question QuestionEntity
 	json.Unmarshal(reqBody, &question)
 
-	redisClient := getRedisClient()
-	newQuestion := addQuestionToStorage(redisClient, question)
+	client := getTableServiceClient()
+	newQuestion := addQuestionToStorage(client, question)
 
 	json.NewEncoder(w).Encode(newQuestion)
 }
@@ -285,12 +433,12 @@ func deleteQuestion(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Endpoint hit: deleteQuestion")
 
 	vars := mux.Vars(r)
-	id := vars["id"]
-	fmt.Println(id)
+	partitionKey := vars["partitionKey"]
+	rowKey := vars["rowKey"]
 
 	// Now that we have the id, we can send that for deletion.
-	redisClient := getRedisClient()
-	resp := deleteQuestionFromStorage(redisClient, id)
+	client := getTableServiceClient()
+	resp := deleteQuestionFromStorage(client, partitionKey, rowKey)
 	json.NewEncoder(w).Encode(resp)
 }
 
@@ -298,10 +446,31 @@ func getVotesByQuestionId(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Println("Endpoint hit: getVotesByQuestionId")
 	vars := mux.Vars(r)
-	id := vars["questionId"]
+	partitionKey := vars["partitionKey"]
+	rowKey := vars["rowKey"]
 
-	redisClient := getRedisClient()
-	json.NewEncoder(w).Encode(getVotesForQuestionFromStorage(redisClient, id))
+	client := getTableServiceClient()
+	json.NewEncoder(w).Encode(getVotesForQuestionFromStorage(client, partitionKey, rowKey))
+}
+
+func updateQuestion(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	fmt.Println("Endpoint hit: updateQuestion")
+	vars := mux.Vars(r)
+	partitionKey := vars["partitionKey"]
+	rowKey := vars["rowKey"]
+
+	// get the body of our POST request
+	// return the string response containing the request body
+	reqBody, _ := io.ReadAll(r.Body)
+
+	var question QuestionEntity
+	json.Unmarshal(reqBody, &question)
+
+	client := getTableServiceClient()
+	updatedQuestion := updateQuestionInStorage(client, partitionKey, rowKey, question)
+
+	json.NewEncoder(w).Encode(updatedQuestion)
 }
 
 // Readyness functions
@@ -325,15 +494,12 @@ func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", home)
 
-	// Test redis section
-	//router.HandleFunc("/redis", checkRedis)
-
 	// First questions.
-	router.HandleFunc("/questions", returnAllQuestions)
+	router.HandleFunc("/questions", returnAllQuestions).Methods("GET")
 	router.HandleFunc("/question", createNewQuestion).Methods("POST")
-	router.HandleFunc("/question/{id}", deleteQuestion).Methods("DELETE")
-	//router.HandleFunc("/question/{id}", updateQuestion).Methods("PUT")
-	router.HandleFunc("/question/{id}", returnQuestion)
+	router.HandleFunc("/question/{partitionKey}/{rowKey}", deleteQuestion).Methods("DELETE")
+	router.HandleFunc("/question/{partitionKey}/{rowKey}", updateQuestion).Methods("PUT")
+	router.HandleFunc("/question/{partitionKey}/{rowKey}", returnQuestion).Methods("GET")
 
 	// Get Votes by question id
 	router.HandleFunc("/votes/{questionId}", getVotesByQuestionId)
@@ -351,67 +517,57 @@ func handleRequests() {
 func main() {
 	fmt.Println("Hello Votesy!")
 
-	fmt.Println("Connecting to Redis...")
+	fmt.Println("Connecting to Azure Table Storage...")
 
-	rds := getRedisClient()
-	pong, err := rds.Ping(context.Background()).Result()
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(pong)
-
-	var ctx = context.Background()
+	ctx := context.Background()
+	serviceClient := getTableServiceClient()
 
 	// See if there are any questions in storage.
-	cnt, err := rds.SCard(ctx, "questions").Result()
-	if err != nil {
-		panic(err)
+	filter := "PartitionKey eq 'questions'"
+	options := &aztables.ListEntitiesOptions{
+		Filter: &filter,
+		Select: to.Ptr("RowKey"),
+		// Only get the first entity
+	}
+
+	// Now check to see if the count is 0, if it is, we need to add some questions.
+	pager := serviceClient.NewClient("questions").NewListEntitiesPager(options)
+
+	cnt := 0
+	for {
+		if !pager.More() {
+			break
+		}
+		resp, _ := pager.NextPage(ctx)
+		cnt = len(resp.Entities)
+		if resp.Entities == nil {
+			fmt.Println("No questions found.")
+			break
+		}
+		fmt.Println("Entities: ", cnt)
+		break
 	}
 
 	if cnt == 0 {
-		// This is a test to see if there are questions. On a new install into an environment, there might
-		// not be any questions, and if that's the case, let's add one.
-		fmt.Println("It seems there are no questions here, lets add the default one, and the second one.")
-		qst1 := QuestionEntity{
-			Id:          "0",
-			Text:        "~ Bear vs Owl ~",
-			Answer1Id:   "0",
+		fmt.Println("Adding question...")
+		question := QuestionEntity{
+			Entity: aztables.Entity{
+				PartitionKey: "questions",
+			},
+			Text:        "Bear or Owl?",
 			Answer1Text: "Bear",
-			Answer2Id:   "1",
 			Answer2Text: "Owl",
 			IsCurrent:   true,
+			CreatedDate: time.Now(),
 		}
-		u1, _ := json.Marshal(qst1)
 
-		qst2 := QuestionEntity{
-			Id:          "1",
-			Text:        "Beach Or Mountains?",
-			Answer1Id:   "2",
-			Answer1Text: "Beach",
-			Answer2Id:   "3",
-			Answer2Text: "Mountains",
-			IsCurrent:   false,
-		}
-		u2, _ := json.Marshal(qst2)
-
-		rds.SAdd(ctx, "questions", u1)
-		rds.SAdd(ctx, "questions", u2)
-		rds.Set(ctx, "question:"+qst1.Id, u1, 0)
-		rds.Set(ctx, "question:"+qst2.Id, u2, 0)
-		rds.Set(ctx, "question:current", u1, 0)
-		rds.Set(ctx, "votes:"+qst1.Answer1Id, 0, 0)
-		rds.Set(ctx, "votes:"+qst1.Answer2Id, 0, 0)
-		rds.Set(ctx, "votes:"+qst2.Answer1Id, 0, 0)
-		rds.Set(ctx, "votes:"+qst2.Answer2Id, 0, 0)
-	} else {
-		fmt.Println("There are", cnt, "questions in storage.")
-
+		addQuestionToStorage(serviceClient, question)
 	}
 
 	// Now lets see if there is a current question.
-	currentQuestion := getCurrentQuestionFromRedis(rds)
-	fmt.Printf("Current Question: %v\n", currentQuestion)
+	currentQuestion := getCurrentQuestionFromStorage(serviceClient)
+	fmt.Printf("Current Question: %v\n", currentQuestion.Text)
 
+	// Now we can start the server.
 	handleRequests()
 }
