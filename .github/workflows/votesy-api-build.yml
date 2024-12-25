@@ -3,7 +3,13 @@ env:
     REGISTRY: ghcr.io
     IMAGE_NAME: ${{ github.repository }}
 
-on: [push]
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+    - 'votesy-api/**'
+    - 'src/votesy-api/**'
+
 
 jobs:
   build-and-push-image:
