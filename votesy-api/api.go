@@ -412,6 +412,14 @@ func returnQuestion(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(question)
 }
 
+func returnCurrentQuestion(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	fmt.Println("Endpoint hit: returnCurrentQuestion")
+
+	client := getTableServiceClient()
+	json.NewEncoder(w).Encode(getCurrentQuestionFromStorage(client))
+}
+
 func createNewQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Println("Endpoint hit: createQuestion")
@@ -500,6 +508,7 @@ func handleRequests() {
 	router.HandleFunc("/question/{partitionKey}/{rowKey}", deleteQuestion).Methods("DELETE")
 	router.HandleFunc("/question/{partitionKey}/{rowKey}", updateQuestion).Methods("PUT")
 	router.HandleFunc("/question/{partitionKey}/{rowKey}", returnQuestion).Methods("GET")
+	router.HandleFunc("/questions/current", returnCurrentQuestion).Methods("GET")
 
 	// Get Votes by question id
 	router.HandleFunc("/votes/{questionId}", getVotesByQuestionId)
