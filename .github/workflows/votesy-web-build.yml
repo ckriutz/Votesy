@@ -5,8 +5,8 @@ on:
         branches: [ "main" ]
         paths:
             - .github/workflows/votesy-web-build.yml
-            - '/votesy-web/**'
-            - '/src/votesy-web/**'
+            - 'votesy-web/**'
+            - 'src/votesy-web/**'
 
 env:
     REGISTRY: ghcr.io
