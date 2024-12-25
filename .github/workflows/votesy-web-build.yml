@@ -1,11 +1,12 @@
-name: Build Votesy API
+name: Build Votesy Web
 
 on:
     push:
         branches: [ "main" ]
         paths:
-            - 'votesy-web/**'
-            - 'src/votesy-web/**'
+            - .github/workflows/votesy-web-build.yml
+            - '/votesy-web/**'
+            - '/src/votesy-web/**'
 
 env:
     REGISTRY: ghcr.io
