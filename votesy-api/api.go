@@ -511,7 +511,7 @@ func handleRequests() {
 	router.HandleFunc("/questions/current", returnCurrentQuestion).Methods("GET")
 
 	// Get Votes by question id
-	router.HandleFunc("/votes/{questionId}", getVotesByQuestionId)
+	router.HandleFunc("/votes/{partitionKey}/{rowKey}", getVotesByQuestionId)
 
 	// Let us add readyness probes!
 	router.HandleFunc("/health/readiness", ready)

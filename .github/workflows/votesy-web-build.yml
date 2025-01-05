@@ -2,7 +2,7 @@ name: Build Votesy Web
 
 on:
     push:
-        branches: [ "main" ]
+        branches: [ "master" ]
         paths:
             - .github/workflows/votesy-web-build.yml
             - 'votesy-web/**'

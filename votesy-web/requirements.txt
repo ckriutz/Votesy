@@ -86,7 +86,6 @@ executing @ file:///opt/conda/conda-bld/executing_1646925071911/work
 fastjsonschema @ file:///ci_py311_third_pass/python-fastjsonschema_1679415970481/work
 filelock @ file:///croot/filelock_1700591185863/work
 flake8 @ file:///ci_py311/flake8_1678236259132/work
-Flask @ file:///croot/flask_1702980030594/work
 fonttools==4.25.0
 fqdn==1.5.1
 frozendict @ file:///croot/frozendict_1713194831395/work
@@ -273,7 +272,6 @@ QtPy @ file:///croot/qtpy_1700144858614/work
 queuelib @ file:///croot/queuelib_1696950073843/work
 referencing @ file:///croot/referencing_1699012043376/work
 regex @ file:///croot/regex_1696515298702/work
-requests @ file:///croot/requests_1707355576692/work
 requests-file @ file:///Users/ktietz/demo/mc3/conda-bld/requests-file_1629455781986/work
 requests-toolbelt @ file:///croot/requests-toolbelt_1690874014189/work
 rfc3339-validator @ file:///croot/rfc3339-validator_1683077049752/work

@@ -12,5 +12,6 @@ The results page used to be a Java app, but that added more complexity than we l
 In order for this to work we need the following env variables:
 
 ```
-apiUrl
+API_URL=
+STORAGE_CONNECTION_STRING=
 ```

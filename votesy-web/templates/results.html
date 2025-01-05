@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet", href="{{ url_for('static', filename='style.css')}}">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <title>Votesy! ✅</title>
+</head>
+<body>
+    <div class="App">
+      <header class="App-header">
+        <h1>Votesy!</h1>
+        <div id="content-container">
+          <div id="content-container-center">
+            <h3><p>{{question.text}}</p></h3>
+          </div>
+        </div>
+        <div id="container">
+          <div class="whole">
+            <div class="type">
+              <p>{{question.answer1}}</p>
+            </div>
+            <div class="plan">
+              <div class="header">
+                <sup>{{answer1_vote_count}}</sup>
+                <p class="votesLabel">votes</p>
+              </div>                
+            </div>
+          </div>
+              
+          <div class="whole">
+              <div class="type ultimate">
+                <p th:text="${answer2}"></p>
+              </div>
+            <div class="plan">
+              <div class="header">
+                <sup th:text="${votes2}"></sup>
+                <p class="votesLabel">votes</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+      <footer class="App-footer">
+        <ul class="list-inline">
+            <li class="list-inline-item"><a href="#">Home</a></li>
+            <li class="list-inline-item"><a th:href="${voteUrl}">Vote!</a></li>
+            <li class="list-inline-item"><a href="https://github.com/ckriutz/Votesy"><i class="fa fa-github" aria-hidden="true"></i></a></li>
+            <li class="list-inline-item"><a href="#">Privacy Policy</a></li>
+        </ul>
+        <!-- Note, I'd love to display the container name however Java has no way to get it. :( -->
+        <p class="copyright">Votesy © 2022</p>
+      </footer>
+    </div>
+   </body>
+</html>
