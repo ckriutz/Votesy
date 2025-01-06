@@ -4,7 +4,7 @@ import socket
 import json
 import requests
 from azure.storage.queue import QueueServiceClient
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, make_response
 
 # This application will get the current question from the API and display it to the user.
 # It will also allow the user to vote on the question and send the vote to the queue.
@@ -16,29 +16,6 @@ hostname = socket.gethostname()
 connectionString = os.getenv('API_URL', 'http://localhost:10000')
 storageConnectionString = os.getenv('STORAGE_CONNECTION_STRING')
 
-# Create a mock question object to use.
-question = {
-    "PartitionKey":"questions",
-    "RowKey":"wzso1",
-    "Timestamp":"2024-12-24T03:23:08.3550273Z",
-    "id":"wzso1",
-    "text":"Bear or Owl?",
-    "answer1Id":"3ief7",
-    "answer1Text":"Bear",
-    "answer2Id":"4cdhw",
-    "answer2Text":"Owl",
-    "answer3Id":"",
-    "answer3Text":"",
-    "answer4Id":"",
-    "answer4Text":"",
-    "isCurrent":"true",
-    "isUsed":"false",
-    "CreatedDate":"2024-12-24T03:23:08.381516842Z"
-}
-
-# Mok return for votes:
-votes = [{"PartitionKey":"votes","RowKey":"3ief7","Timestamp":"2024-12-24T17:53:08.4070264Z","id":"3ief7","voteCount":11},{"PartitionKey":"votes","RowKey":"4cdhw","Timestamp":"2024-12-24T17:53:14.0582694Z","id":"4cdhw","voteCount":2}]
-
 app = Flask(__name__)
 
 def send_message_to_queue(message):
@@ -46,38 +23,86 @@ def send_message_to_queue(message):
     queue_client = queue_service_client.get_queue_client("votes")
     queue_client.send_message(message)
 
+def get_cookie_for_vote():
+    vote_history = request.cookies.get('vote_history')
+    if vote_history is None or vote_history == "":
+        return []
+    return json.loads(vote_history)
+
 @app.route("/", methods=['POST','GET'])
 def main():
+    history = get_cookie_for_vote()
+    print("history: "+ json.dumps(history))
     vote = None
-    print(connectionString + '/questions/current')
-    #x = requests.get(connectionString + '/questions/current', verify=False)
+    #print(connectionString + '/questions/current')
+    x = requests.get(connectionString + '/questions/current', verify=False)
     #print(x.json())
-    #question = x.json()
+    question = x.json()
     if request.method == 'POST':
         # This is where we send it to queue storage.
         vote = request.form['vote']
         message = {"answerId" : vote}
         send_message_to_queue(json.dumps(message))
+        
+        # build out the cookie object to include the questionId, and the answerid that was slected, and add it to the existing cookie if there is one.
+        # This will allow us to keep track of the question and the answer that was selected.
+        selection = {"question": question['id'], "answerId" : vote}
+        history.append(selection)
 
-    # Get the vote count for answer1Id
-    
+        resp = make_response(render_template("index.html", 
+            hostname = hostname, 
+            question = question, 
+            voting_history = json.dumps(history), 
+            vote = vote))
+        resp.set_cookie('vote_history', json.dumps(history))
+        return resp
 
-    return render_template("index.html", 
+    resp = make_response(render_template("index.html", 
         hostname = hostname, 
         question = question, 
-        connectionString = storageConnectionString, 
-        vote = vote)
+        voting_history = json.dumps(history),
+        vote = vote))
+    return resp
 
 @app.route("/results", methods=['GET'])
 def results():
     # I have to pass in both the question (with the answers),
     # and the number of votes for each answer.
-    print(connectionString + '/votes/' + question["PartitionKey"] + question['RowKey'])
-    answer1_vote_count = next((item['voteCount'] for item in votes if item['RowKey'] == question['answer1Id']), 0)
+    x = requests.get(connectionString + '/questions/current', verify=False)
+    print(x.json())
+    question = x.json()
+
+    # Now get the vote count for each answer.
+    x = requests.get(connectionString + '/votes/' + question['PartitionKey'] +'/' + question['RowKey'], verify=False)
+    print(x.json())
+    votes = x.json()
+    
+    combined = {
+        "question": question['text'], 
+        "answer1": question['answer1Text'], 
+        "answer1Votes": 0, 
+        "answer2": question['answer2Text'], 
+        "answer2Votes": 0, 
+        "answer3": question['answer3Text'], 
+        "answer3Votes": 0, 
+        "answer4": question['answer4Text'], 
+        "answer4Votes": 0
+    }
+    # I need to populate the votes into the combined object from the votes object.
+    for vote in votes:
+        if vote['id'] == question['answer1Id']:
+            combined['answer1Votes'] = vote['voteCount']
+        elif vote['id'] == question['answer2Id']:
+            combined['answer2Votes'] = vote['voteCount']
+        elif vote['id'] == question['answer3Id']:
+            combined['answer3Votes'] = vote['voteCount']
+        elif vote['id'] == question['answer4Id']:
+            combined['answer4Votes'] = vote['voteCount']
+    
+
     #x = requests.get(connectionString + '/votes/' + question['id'], verify=False)
-    #print(x.json())
-    return render_template("results.html", hostname = hostname, question = question, votes = votes,
-        answer1_vote_count = answer1_vote_count)
+    print(combined)
+    return render_template("results.html", hostname = hostname, combined = combined)
 
 @app.route("/health/readiness", methods=['GET'])
 def readiness():

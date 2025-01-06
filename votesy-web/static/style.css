@@ -216,34 +216,77 @@ body {
     opacity:1;
   }
   
-  /*
-  .social {
-    text-align:center;
-    padding-bottom:65px;
-    color: white;
+  .votesLabel{
+    font-size: calc(12px + 2vmin);
+    color: black;
+    padding: 0px;
+    margin: 0px;
+  }
+
+  .whole{
+    display: inline-block;
+    
   }
   
-  .social > a {
-    font-size:24px;
-    width:40px;
-    height:40px;
-    line-height:40px;
-    display:inline-block;
-    text-align:center;
-    border-radius:50%;
-    border:1px solid #ccc;
-    margin:0 8px;
-    color:inherit;
-    opacity:0.75;
-  }
+  .plan{
+    width: 300px;
+    background-color: white;
   
-  .social > a:hover {
-    opacity:0.9;
+    border-radius: 0px 0px 0px 0px;
+      font-family:'Open Sans';
+      font-style:condensed;
+      font-size: 90px;
+      color: white;
+      text-align: center;
+  
+  
   }
-*/
+  .header{
+    border-bottom: 1px solid #494a5a;
+    padding-bottom: 20px;
+    padding-top: 20px;
+  }
+
+  .type{
+    width: 300px;
+    border-radius: 5px 5px 0px 0px;
+    background-color: #1aaaf8;
+    height: 62px;
+    border-bottom: 3px solid #1aaaf8;
+  
+  }
+
+  .type-bottom{
+    width: 300px;
+    border-radius: 0px 0px 5px 5px;
+    background-color: #1aaaf8;
+    height: 62px;
+    border-bottom: 3px solid #1aaaf8;
+  
+  }
+
   .copyright {
     font-size:13px;
     color:#aaa;
   }
 
+  .flex-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.whole {
+    flex: 1;
+    margin: 10px;
+}
+
+.centered-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+sup {
+  color: black;
+}
   /* Credit to https://epicbootstrap.com/snippets/footer-basic */

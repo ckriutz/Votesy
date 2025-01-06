@@ -14,44 +14,72 @@
         <h1>Votesy!</h1>
         <div id="content-container">
           <div id="content-container-center">
-            <h3><p>{{question.text}}</p></h3>
+            <h3><p>{{combined.question}}</p></h3>
           </div>
         </div>
-        <div id="container">
-          <div class="whole">
-            <div class="type">
-              <p>{{question.answer1}}</p>
+        <div id="container" class="flex-container">
+            <div class="whole">
+                <div class="type centered-content">
+                    <p>{{combined.answer1}}</p>
+                </div>
+                <div class="plan">
+                    <div class="header">
+                        <span style="color: black;">{{combined.answer1Votes}}</span>
+                        <p class="votesLabel">votes</p>
+                    </div>                
+                </div>
+                <div class="type-bottom"></div>
             </div>
-            <div class="plan">
-              <div class="header">
-                <sup>{{answer1_vote_count}}</sup>
-                <p class="votesLabel">votes</p>
-              </div>                
+            <div class="whole">
+              <div class="type centered-content">
+                    <p>{{combined.answer2}}</p>
+                </div>
+                <div class="plan">
+                    <div class="header">
+                        <span style="color: black;">{{combined.answer2Votes}}</span>
+                        <p class="votesLabel">votes</p>
+                    </div>                
+                </div>
+                <div class="type-bottom"></div>
             </div>
-          </div>
-              
-          <div class="whole">
-              <div class="type ultimate">
-                <p th:text="${answer2}"></p>
-              </div>
-            <div class="plan">
-              <div class="header">
-                <sup th:text="${votes2}"></sup>
-                <p class="votesLabel">votes</p>
-              </div>
+            {% if combined.answer3 %}
+            <div class="whole">
+                <div class="type centered-content">
+                    <p>{{combined.answer3}}</p>
+                </div>
+                <div class="plan">
+                    <div class="header">
+                        <span style="color: black;">{{combined.answer3Votes}}</span>
+                        <p class="votesLabel">votes</p>
+                    </div>                
+                </div>
+                <div class="type-bottom"></div>
             </div>
-          </div>
+            {% endif %}
+            {% if combined.answer4 %}
+            <div class="whole">
+                <div class="type centered-content">
+                    <p>{{combined.answer4}}</p>
+                </div>
+                <div class="plan">
+                    <div class="header">
+                        <span style="color: black;">{{combined.answer4Votes}}</span>
+                        <p class="votesLabel">votes</p>
+                    </div>                
+                </div>
+                <div class="type-bottom"></div>
+            </div>
+            {% endif %}
         </div>
       </header>
       <footer class="App-footer">
         <ul class="list-inline">
-            <li class="list-inline-item"><a href="#">Home</a></li>
-            <li class="list-inline-item"><a th:href="${voteUrl}">Vote!</a></li>
+            <li class="list-inline-item"><a href="/">Home</a></li>
             <li class="list-inline-item"><a href="https://github.com/ckriutz/Votesy"><i class="fa fa-github" aria-hidden="true"></i></a></li>
             <li class="list-inline-item"><a href="#">Privacy Policy</a></li>
         </ul>
         <!-- Note, I'd love to display the container name however Java has no way to get it. :( -->
-        <p class="copyright">Votesy © 2022</p>
+        <p class="copyright">Votesy © 2024</p>
       </footer>
     </div>
    </body>

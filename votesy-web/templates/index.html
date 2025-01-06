@@ -21,7 +21,7 @@
                     </form>
                 </div>
             </div>
-            <a class="results" href=#><i class="fa fa-check-square-o" aria-hidden="true"></i>View the Results!</a>
+            <a class="results" href="results"><i class="fa fa-check-square-o" aria-hidden="true"></i>View the Results!</a>
         </header>
         <footer class="App-footer">
             <ul class="list-inline">
@@ -30,9 +30,50 @@
                 <li class="list-inline-item"><a href="https://github.com/ckriutz/Votesy"><i class="fa fa-github" aria-hidden="true"></i></a></li>
                 <li class="list-inline-item"><a href="#">Privacy Policy</a></li>
             </ul>
-            <p class="copyright">Votesy © 2022 | Processed by container ID <b>{{hostname}}</b> | API URL: {{connectionString}} | Results: #</p>
+            <p class="copyright">Votesy © 2024 | Processed by container ID <b>{{hostname}}</b> | Question Id: {{question.RowKey}}</p>
         </footer>
     </div>
+
+    {% if voting_history %}
+    <script>
+        var votingHistory = {{ voting_history | tojson }};
+        var question = {{ question | tojson }};
+        votingHistory = JSON.parse(votingHistory);
+
+        // Check if question['RowKey'] exists in votingHistory
+        var questionInHistory = votingHistory.some(item => item["question"] === question.RowKey);
+        if (questionInHistory) {
+            // They have answered this question before, so figure out which one they did, and select that.
+            var answeredQuestion = votingHistory.find(item => item["question"] === question.RowKey);
+            vote = answeredQuestion.answerId;
+            
+            const buttonA = document.getElementById("{{question.answer1Id}}")        
+            const buttonB = document.getElementById("{{question.answer2Id}}")
+            
+            if(vote == "{{question.answer1Id}}")
+            {
+
+                buttonA.disabled = true;
+                buttonA.innerHTML = "{{question.answer1Text}}<i class='fa fa-check-circle'></i>"
+                buttonB.style.opacity = '0.5'
+            }
+            if(vote == "{{question.answer2Id}}")
+            {
+                buttonB.disabled = true;
+                buttonB.innerHTML = "{{question.answer2Text}}<i class='fa fa-check-circle'></i>"
+                buttonA.style.opacity = '0.5'
+            }
+        }
+
+        // Log each item in votingHistory to verify its structure
+        console.log(question.RowKey)
+        votingHistory.forEach(element => {
+            console.log(element.question);
+        })
+
+
+    </script>
+    {% endif %}
 
     {% if vote %}
     <script>
@@ -43,16 +84,12 @@
 
         if(vote == "{{question.answer1Id}}")
         {
-            console.log("Voted for a");
-            
             buttonA.disabled = true;
             buttonA.innerHTML = "{{question.answer1Text}}<i class='fa fa-check-circle'></i>"
             buttonB.style.opacity = '0.5'
         }
         if(vote == "{{question.answer2Id}}")
         {
-            console.log("Voted for b");
-            
             buttonB.disabled = true;
             buttonB.innerHTML = "{{question.answer2Text}}<i class='fa fa-check-circle'></i>"
             buttonA.style.opacity = '0.5'
