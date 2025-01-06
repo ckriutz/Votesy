@@ -15,6 +15,9 @@ env:
 jobs:
     build-and-push-image:
         runs-on: ubuntu-latest
+        defaults:
+          run:
+            working-directory: ./votesy-web
         permissions:
             contents: read
             packages: write
@@ -41,11 +44,12 @@ jobs:
               images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
         - name: Build and push Docker image
-          uses: docker/build-push-action@v4.1.1
+          uses: docker/build-push-action@v6.9.0
           with:
+            context: ./votesy-web
+            file: ./votesy-web/Dockerfile
             platforms: linux/amd64,linux/arm64
             push: true
             tags: |
-                ghcr.io/ckriutz/votesy-web:latest
-                ghcr.io/ckriutz/votesy-web:${{ github.run_number }}
-            labels: ${{ steps.meta.outputs.tags }}
+              ghcr.io/ckriutz/votesy-web:latest
+              ghcr.io/ckriutz/votesy-web:${{github.run_number}}
