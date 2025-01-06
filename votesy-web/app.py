@@ -69,12 +69,10 @@ def results():
     # I have to pass in both the question (with the answers),
     # and the number of votes for each answer.
     x = requests.get(connectionString + '/questions/current', verify=False)
-    print(x.json())
     question = x.json()
 
     # Now get the vote count for each answer.
     x = requests.get(connectionString + '/votes/' + question['PartitionKey'] +'/' + question['RowKey'], verify=False)
-    print(x.json())
     votes = x.json()
     
     combined = {
