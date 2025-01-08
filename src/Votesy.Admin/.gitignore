@@ -1,0 +1,54 @@
+# Ignore build outputs
+bin/
+obj/
+
+# Ignore user-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Ignore Rider project files
+.idea/
+
+# Ignore Visual Studio Code settings
+.vscode/
+
+# Ignore ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Ignore NPM packages
+node_modules/
+
+# Ignore logs
+*.log
+
+# Ignore publish output
+wwwroot/
+
+# Ignore secrets
+secrets.json
+
+# Ignore JetBrains Rider files
+.idea/
+*.sln.iml
+
+# Ignore coverage files
+coverage/
+*.coverage
+*.coveragexml
+*.log
+TestResults/
+*.trx
+*.cobertura.xml
+
+# Ignore byebug files
+.byebug_history
+
+# Ignore local history
+.localhistory/
+
+# Ignore temporary files
+*.tmp
+*.temp

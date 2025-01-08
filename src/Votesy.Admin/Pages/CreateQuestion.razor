@@ -1,0 +1,50 @@
+@page "/createquestion"
+@using Votesy.Admin.Data
+@inject QuestionService QuestionService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create a Question</PageTitle>
+
+<h1>Create a Question</h1>
+
+<EditForm Model="newQuestion" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="questionText">Question Text</label>
+        <InputText id="questionText" class="form-control" @bind-Value="newQuestion.Text" />
+    </div>
+
+    <div class="form-group">
+        <label for="answer1Text">Answer 1</label>
+        <InputText id="answer1Text" class="form-control" @bind-Value="newQuestion.Answer1Text" />
+    </div>
+
+    <div class="form-group">
+        <label for="answer2Text">Answer 2</label>
+        <InputText id="answer2Text" class="form-control" @bind-Value="newQuestion.Answer2Text" />
+    </div>
+
+    <div class="form-group">
+        <label for="answer3Text">Answer 3</label>
+        <InputText id="answer3Text" class="form-control" @bind-Value="newQuestion.Answer3Text" />
+    </div>
+
+    <div class="form-group">
+        <label for="answer4Text">Answer 4</label>
+        <InputText id="answer4Text" class="form-control" @bind-Value="newQuestion.Answer4Text" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@code {
+    private Question newQuestion = new Question();
+
+    private async Task HandleValidSubmit()
+    {
+        await QuestionService.AddQuestionAsync(newQuestion);
+        NavigationManager.NavigateTo("/fetchdata");
+    }
+}

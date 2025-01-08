@@ -1,0 +1,74 @@
+﻿@page "/fetchdata"
+@using Votesy.Admin.Data
+@inject QuestionService QuestionService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Questions</PageTitle>
+
+<h1>Questions List</h1>
+
+<p>This component demonstrates fetching data from a service.</p>
+
+@if (questions == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Text</th>
+                <th>Answer 1</th>
+                <th>Answer 2</th>
+                <th>Answer 3</th>
+                <th>Answer 4</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var question in questions)
+            {
+                <tr class="@GetRowClass(question.IsCurrent)">
+                    <td>@question.Id</td>
+                    <td>@question.Text</td>
+                    <td>@question.Answer1Text</td>
+                    <td>@question.Answer2Text</td>
+                    <td>@question.Answer3Text</td>
+                    <td>@question.Answer4Text</td>
+                    <td>
+                        <button @onclick="() => DeleteQuestion(question.Id)" class="btn btn-danger">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button @onclick="NavigateToCreateQuestion" class="btn btn-primary">Create New Question</button>
+}
+
+@code {
+    private List<Question> questions;
+
+    private async Task DeleteQuestion(string id)
+    {
+        await QuestionService.DeleteQuestionAsync(id);
+        questions = await QuestionService.GetQuestionsAsync();
+    }
+
+    private void NavigateToCreateQuestion()
+    {
+        NavigationManager.NavigateTo("/createquestion");
+    }
+
+    private string GetRowClass(bool isCurrent)
+    {
+        return isCurrent ? "table-success" : string.Empty;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        questions = await QuestionService.GetQuestionsAsync();
+    }
+}
